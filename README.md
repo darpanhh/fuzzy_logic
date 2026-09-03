@@ -2,7 +2,7 @@
 
 #  Automatic Fan Speed Control using Fuzzy Logic
 
-### A Mamdani Fuzzy Inference System for Intelligent Fan Speed Regulation
+### A Mamdani Fuzzy Inference System for Intelligent Fan Speed Regulation.
 
 
 
