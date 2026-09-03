@@ -50,19 +50,14 @@ with st.sidebar:
     st.divider()
     run = st.button("Run inference →", type="primary", use_container_width=True)
     st.divider()
-    st.caption(
-        "**About**  \nThis tool steps through the full Mamdani "
-        "fuzzy pipeline: fuzzification → rule evaluation → "
-        "implication → aggregation → defuzzification."
-    )
+    
 
 
 # ── Main area — header ────────────────────────────────────────────────────────
-st.markdown("## 🌀 Automatic Fan Speed Control")
+st.markdown("##  Automatic Fan Speed Control")
 st.markdown(
     "Inputs: **Temperature** (0–40 °C) and **Humidity** (0–100 %).  "
     "Output: **Fan Speed** (0–100 %).  "
-    "Mamdani FIS — AND = min, OR = max, defuzzification = centroid."
 )
 st.divider()
 
@@ -90,7 +85,6 @@ with col_res:
     <div class="result-box">
         <div style="font-size:0.78rem; color:#8a9bb8; margin-bottom:6px; letter-spacing:0.05em;">FAN SPEED</div>
         <div class="result-number">{result.fan_speed:.1f}%</div>
-        <div class="result-sub">centroid defuzzification</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -104,8 +98,7 @@ st.markdown("""
   <div class="card-title">Membership Functions</div>
   <div class="card-desc">
     Each input and output variable is partitioned into three triangular fuzzy sets.
-    These define how crisp values map to linguistic terms.
-    The dashed line marks the current input.
+    These define how crisp values map to linguistic terms across each universe.
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -133,25 +126,30 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 fig_ft, fig_fh = charts.plot_fuzzification(result, system)
+td = result.temp_degrees
+hd = result.hum_degrees
+
 fc1, fc2 = st.columns(2)
 with fc1:
     st.pyplot(fig_ft, use_container_width=True); plt.close(fig_ft)
+    st.markdown(
+        f'<div style="text-align:center; margin-top: 4px;">'
+        f'<span class="mem-pill">Cold = {td["cold"]:.3f}</span>'
+        f'<span class="mem-pill">Warm = {td["warm"]:.3f}</span>'
+        f'<span class="mem-pill">Hot = {td["hot"]:.3f}</span>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
 with fc2:
     st.pyplot(fig_fh, use_container_width=True); plt.close(fig_fh)
-
-# Membership degree summary pills
-td = result.temp_degrees
-hd = result.hum_degrees
-st.markdown(
-    f'<span class="mem-pill">T: Cold = {td["cold"]:.3f}</span>'
-    f'<span class="mem-pill">T: Warm = {td["warm"]:.3f}</span>'
-    f'<span class="mem-pill">T: Hot = {td["hot"]:.3f}</span>'
-    f'&nbsp;&nbsp;'
-    f'<span class="mem-pill">H: Low = {hd["low"]:.3f}</span>'
-    f'<span class="mem-pill">H: Medium = {hd["medium"]:.3f}</span>'
-    f'<span class="mem-pill">H: High = {hd["high"]:.3f}</span>',
-    unsafe_allow_html=True,
-)
+    st.markdown(
+        f'<div style="text-align:center; margin-top: 4px;">'
+        f'<span class="mem-pill">Low = {hd["low"]:.3f}</span>'
+        f'<span class="mem-pill">Medium = {hd["medium"]:.3f}</span>'
+        f'<span class="mem-pill">High = {hd["high"]:.3f}</span>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
 st.markdown("")
 
 
@@ -207,7 +205,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-fig_agg = charts.plot_aggregation(result)
+fig_agg = charts.plot_aggregation(result, system)
 st.pyplot(fig_agg, use_container_width=True)
 plt.close(fig_agg)
 

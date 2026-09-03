@@ -48,12 +48,12 @@ RESULT_NUM     = "#7aadff"   # large result number
 # ── Chart colours ─────────────────────────────────────────────────────────────
 CHART_FIG_BG   = "#ffffff"
 CHART_AXES_BG  = "#f9fafc"
-CHART_SPINE    = "#d0d6e0"
+CHART_SPINE    = "#000000"   # black axis lines
 CHART_GRID     = "#e4e8f0"
-CHART_TICK     = "#444444"
-CHART_TITLE    = "#1a1f2e"
-CHART_LABEL    = "#5a6478"
-CHART_INPUT    = "#1a1f2e"   # vertical dashed line for crisp input
+CHART_TICK     = "#000000"   # black tick marks and tick values
+CHART_TITLE    = "#000000"   # black title
+CHART_LABEL    = "#000000"   # black x and y axis labels
+CHART_INPUT    = "#000000"   # vertical dashed line for crisp input
 
 AGG_COLOR      = "#3b6fd4"   # aggregated set line
 CENTROID_COLOR = "#d94444"   # centroid marker

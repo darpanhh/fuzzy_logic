@@ -27,10 +27,10 @@ def _base_fig(w: float = 8, h: float = 3.2):
     fig, ax = plt.subplots(figsize=(w, h))
     fig.patch.set_facecolor(theme.CHART_FIG_BG)
     ax.set_facecolor(theme.CHART_AXES_BG)
-    ax.tick_params(colors=theme.CHART_TICK, labelsize=9)
+    ax.tick_params(colors=theme.CHART_TICK, labelsize=9, width=1.0)
     for spine in ax.spines.values():
         spine.set_color(theme.CHART_SPINE)
-        spine.set_linewidth(0.8)
+        spine.set_linewidth(1.1)
     ax.grid(True, color=theme.CHART_GRID, linewidth=0.5)
     return fig, ax
 
@@ -38,36 +38,49 @@ def _base_fig(w: float = 8, h: float = 3.2):
 def _style_ax(ax, title: str, xlabel: str, ylabel: str = "μ"):
     ax.set_title(title, fontsize=10, fontweight="600",
                  color=theme.CHART_TITLE, pad=8)
-    ax.set_xlabel(xlabel, fontsize=8, color=theme.CHART_LABEL)
-    ax.set_ylabel(ylabel, fontsize=9, color=theme.CHART_LABEL)
+    ax.set_xlabel(xlabel, fontsize=9, fontweight="500", color=theme.CHART_LABEL)
+    ax.set_ylabel(ylabel, fontsize=9, fontweight="500", color=theme.CHART_LABEL)
+
+
+def _trim_to_support(univ, arr):
+    """Return slices of *univ* and *arr* covering only the non-zero support
+    region plus one boundary zero on each side so the curve terminates
+    cleanly instead of drawing a flat line at μ = 0."""
+    nonzero = np.where(arr > 0)[0]
+    if len(nonzero) == 0:
+        return univ, arr          # entirely zero — nothing to trim
+    start = max(nonzero[0] - 1, 0)
+    end   = min(nonzero[-1] + 1, len(arr) - 1)
+    return univ[start:end + 1], arr[start:end + 1]
 
 
 # ── Step 1 — Membership functions ────────────────────────────────────────────
 
-def plot_membership_functions(system: FuzzySystem, input_temp: float, input_hum: float):
+def plot_membership_functions(system: FuzzySystem, input_temp: float = None, input_hum: float = None):
     """
     Returns three figures: temperature MFs, humidity MFs, fan-speed MFs.
-    A dashed vertical line marks the current crisp input on the input charts.
+    Pure definition curves without input projections (projections are shown in Step 2).
     """
-    def _mf_fig(univ, mf_dict, colors, title, xlabel, input_val=None):
+    def _mf_fig(univ, mf_dict, colors, title, xlabel):
         fig, ax = _base_fig(5, 3)
         for term, arr in mf_dict.items():
             color = colors[term]
-            ax.plot(univ, arr, color=color, lw=2, label=term.title())
-            ax.fill_between(univ, arr, alpha=0.07, color=color)
-        if input_val is not None:
-            ax.axvline(input_val, color=theme.CHART_INPUT,
-                       lw=1.4, ls="--", alpha=0.5)
+            u_t, a_t = _trim_to_support(univ, arr)
+            ax.plot(u_t, a_t, color=color, lw=2, label=term.title())
+            ax.fill_between(u_t, a_t, alpha=0.07, color=color)
+
+        ax.set_xlim(univ[0], univ[-1])
         ax.set_ylim(-0.04, 1.1)
-        ax.legend(fontsize=8, framealpha=0.9, edgecolor=theme.CHART_SPINE)
+        ax.legend(fontsize=8, framealpha=0.9, edgecolor=theme.CHART_SPINE,
+                  loc="upper right")
         _style_ax(ax, title, xlabel)
         fig.tight_layout()
         return fig
 
     fig_t = _mf_fig(T_UNIVERSE, system.temp_mfs, theme.TEMP_COLORS,
-                    "Temperature", "°C", input_temp)
+                    "Temperature", "°C")
     fig_h = _mf_fig(H_UNIVERSE, system.hum_mfs,  theme.HUM_COLORS,
-                    "Humidity", "%", input_hum)
+                    "Humidity", "%")
 
     # Fan-speed colour map uses the FAN_COLORS keys
     fan_colors_mapped = {
@@ -92,16 +105,29 @@ def plot_fuzzification(result: InferenceResult, system: FuzzySystem):
         for term, arr in mf_dict.items():
             mu    = degrees[term]
             color = colors[term]
-            ax.plot(univ, arr, color=color, lw=2,
+            u_t, a_t = _trim_to_support(univ, arr)
+            ax.plot(u_t, a_t, color=color, lw=2,
                     label=f"{term.title()}  μ = {mu:.3f}")
             if mu > 0:
-                ax.hlines(mu, 0, input_val,
-                          colors=color, linestyles="dotted", lw=1.2, alpha=0.7)
-                ax.plot(input_val, mu, "o", color=color, markersize=7, zorder=5)
+                # Bold horizontal projection line from the y-axis (x=0) to the input intersection
+                ax.hlines(mu, univ[0], input_val,
+                          colors=color, linestyles="--", lw=1.6, alpha=0.9, zorder=5)
+                ax.plot(input_val, mu, "o", color=color, markersize=7, zorder=6)
+                # Square marker directly on the y-axis spine
+                ax.plot(univ[0], mu, "s", color=color, markersize=6, zorder=6)
+                # Text label right on the y-axis showing the exact projected mu
+                offset_x = (univ[-1] - univ[0]) * 0.02
+                ax.text(univ[0] + offset_x, mu + 0.03, f"μ={mu:.3f}",
+                        color=color, fontsize=8, fontweight="600",
+                        bbox=dict(boxstyle="round,pad=0.15", facecolor="#ffffff", edgecolor=color, alpha=0.85, lw=0.6),
+                        zorder=7)
+
         ax.axvline(input_val, color=theme.CHART_INPUT,
-                   lw=1.4, ls="--", alpha=0.5, label=f"Input = {input_val}")
-        ax.set_ylim(-0.04, 1.12)
-        ax.legend(fontsize=8, framealpha=0.9, edgecolor=theme.CHART_SPINE)
+                   lw=1.5, ls="--", alpha=0.6, label=f"Input = {input_val}")
+        ax.set_xlim(univ[0], univ[-1])
+        ax.set_ylim(-0.04, 1.15)
+        ax.legend(fontsize=8, framealpha=0.9, edgecolor=theme.CHART_SPINE,
+                  loc="upper right")
         _style_ax(ax, title, xlabel)
         fig.tight_layout()
         return fig
@@ -256,11 +282,14 @@ def plot_implication(result: InferenceResult, system: FuzzySystem):
         clipped = np.fmin(alpha, base)
 
         fig, ax = _base_fig(3.5, 2.8)
-        ax.plot(F_UNIVERSE, base, color=color, lw=1.5, ls="--", alpha=0.35)
-        ax.fill_between(F_UNIVERSE, clipped, alpha=0.30, color=color)
-        ax.plot(F_UNIVERSE, clipped, color=color, lw=2)
+        u_b, b_t = _trim_to_support(F_UNIVERSE, base)
+        ax.plot(u_b, b_t, color=color, lw=1.5, ls="--", alpha=0.35)
+        u_c, c_t = _trim_to_support(F_UNIVERSE, clipped)
+        ax.fill_between(u_c, c_t, alpha=0.30, color=color)
+        ax.plot(u_c, c_t, color=color, lw=2)
         ax.axhline(alpha, color="#777", lw=0.9, ls=":", alpha=0.7)
         ax.text(2, alpha + 0.03, f"α={alpha:.3f}", fontsize=7.5, color="#555")
+        ax.set_xlim(F_UNIVERSE[0], F_UNIVERSE[-1])
         ax.set_ylim(-0.04, 1.1)
         _style_ax(ax, f"R{idx+1}: {t_lbl} ∧ {h_lbl} → {f_lbl}",
                   "Fan Speed %")
@@ -272,10 +301,11 @@ def plot_implication(result: InferenceResult, system: FuzzySystem):
 
 # ── Step 5 — Aggregation ─────────────────────────────────────────────────────
 
-def plot_aggregation(result: InferenceResult):
+def plot_aggregation(result: InferenceResult, system: FuzzySystem = None):
     """
     Returns a single figure of the aggregated output fuzzy set
     with individual term contributions shown as dashed fills.
+    If *system* is provided, per-rule clipped curves are also drawn.
     """
     fan_colors = {
         "slow":   theme.FAN_COLORS["slow"],
@@ -284,17 +314,40 @@ def plot_aggregation(result: InferenceResult):
     }
 
     fig, ax = _base_fig(10, 3.6)
+
+    # Per-rule individual clipped curves (lighter, so each rule is visible)
+    if system is not None:
+        shown_labels = set()
+        for idx, (t_lbl, h_lbl, f_lbl) in enumerate(RULE_META):
+            alpha = result.rule_strengths[idx]
+            if alpha == 0:
+                continue
+            f_key   = f_lbl.lower()
+            color   = fan_colors[f_key]
+            clipped = np.fmin(alpha, system.fan_mfs[f_key])
+            u_c, c_t = _trim_to_support(F_UNIVERSE, clipped)
+            rule_label = f"R{idx+1}: {f_lbl} (\u03b1={alpha:.3f})"
+            ax.plot(u_c, c_t, color=color, lw=1.0, ls=":",
+                    alpha=0.55, label=rule_label)
+            ax.fill_between(u_c, c_t, alpha=0.08, color=color)
+
+    # Per-term combined clipped MFs (the OR-max of all rules per term)
     for term, arr in result.clipped_mfs.items():
         if np.max(arr) > 0:
             color = fan_colors[term]
-            ax.fill_between(F_UNIVERSE, arr, alpha=0.18, color=color)
-            ax.plot(F_UNIVERSE, arr, color=color, lw=1.2, ls="--",
-                    alpha=0.5, label=f"{term.title()} (clipped)")
+            u_t, a_t = _trim_to_support(F_UNIVERSE, arr)
+            ax.fill_between(u_t, a_t, alpha=0.18, color=color)
+            ax.plot(u_t, a_t, color=color, lw=1.2, ls="--",
+                    alpha=0.5, label=f"{term.title()} (combined)")
 
-    ax.fill_between(F_UNIVERSE, result.aggregate, alpha=0.25, color=theme.AGG_COLOR)
-    ax.plot(F_UNIVERSE, result.aggregate, color=theme.AGG_COLOR,
+    u_agg, a_agg = _trim_to_support(F_UNIVERSE, result.aggregate)
+    ax.fill_between(u_agg, a_agg, alpha=0.25, color=theme.AGG_COLOR)
+    ax.plot(u_agg, a_agg, color=theme.AGG_COLOR,
             lw=2.2, label="Aggregate (max)")
-    ax.legend(fontsize=8.5, framealpha=0.9, edgecolor=theme.CHART_SPINE)
+    ax.set_xlim(F_UNIVERSE[0], F_UNIVERSE[-1])
+    ax.set_ylim(-0.04, 1.12)
+    ax.legend(fontsize=7.5, framealpha=0.9, edgecolor=theme.CHART_SPINE,
+             loc="upper right", ncol=2)
     _style_ax(ax, "Aggregated Output Fuzzy Set", "Fan Speed %")
     fig.tight_layout()
     return fig
@@ -310,15 +363,30 @@ def plot_defuzzification(result: InferenceResult):
     agg = result.aggregate
     cv  = result.fan_speed
 
-    ax.fill_between(F_UNIVERSE, agg, alpha=0.20, color=theme.AGG_COLOR)
-    ax.plot(F_UNIVERSE, agg, color=theme.AGG_COLOR, lw=2.2, label="Aggregate set")
-    ax.fill_between(F_UNIVERSE, agg, where=(F_UNIVERSE <= cv),
-                    alpha=0.18, color=theme.CENTROID_FILL, label="Left of centroid")
+    u_agg, a_agg = _trim_to_support(F_UNIVERSE, agg)
+    ax.fill_between(u_agg, a_agg, alpha=0.20, color=theme.AGG_COLOR)
+    ax.plot(u_agg, a_agg, color=theme.AGG_COLOR, lw=2.2, label="Aggregate set")
+
+    # Construct exact left-of-centroid slice including the exact centroid point (cv, mu)
+    x_left_pts = F_UNIVERSE[F_UNIVERSE <= cv]
+    y_left_pts = agg[F_UNIVERSE <= cv]
+    if len(x_left_pts) > 0 and x_left_pts[-1] != cv:
+        mu_at_cv = float(np.interp(cv, F_UNIVERSE, agg))
+        x_left = np.append(x_left_pts, cv)
+        y_left = np.append(y_left_pts, mu_at_cv)
+    else:
+        x_left = x_left_pts
+        y_left = y_left_pts
+
+    ax.fill_between(x_left, y_left, alpha=0.22, color=theme.CENTROID_FILL, label="Left of centroid")
     ax.axvline(cv, color=theme.CENTROID_COLOR, lw=2,
-               label=f"Centroid = {cv:.2f}%")
+               label=f"Centroid = {cv:.2f}%", zorder=5)
     ax.plot(cv, 0, marker="^", color=theme.CENTROID_COLOR,
             markersize=11, zorder=6)
-    ax.legend(fontsize=8.5, framealpha=0.9, edgecolor=theme.CHART_SPINE)
+    ax.set_xlim(F_UNIVERSE[0], F_UNIVERSE[-1])
+    ax.set_ylim(-0.04, 1.12)
+    ax.legend(fontsize=8.5, framealpha=0.9, edgecolor=theme.CHART_SPINE,
+             loc="upper right")
     _style_ax(ax, "Defuzzification — Centroid Method", "Fan Speed %")
     fig.tight_layout()
     return fig
