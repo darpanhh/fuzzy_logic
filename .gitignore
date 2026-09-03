@@ -18,6 +18,11 @@ venv.bak/
 *.jpg
 *.jpeg
 
+# Allow screenshots for README
+!screenshots/*.png
+!screenshots/*.jpg
+!screenshots/*.jpeg
+
 # IDE & OS
 .vscode/
 .idea/
