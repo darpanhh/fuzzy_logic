@@ -1,48 +1,24 @@
 <div align="center">
 
-#  Automatic Fan Speed Control using Fuzzy Logic
+# Fuzzy Logic Fan Speed Controller & Pipeline Visualizer
 
-### A Mamdani Fuzzy Inference System for Intelligent Fan Speed Regulation.
+### An Interactive Mamdani Fuzzy Inference System with Step-by-Step Visualization
 
-
-
-
-An interactive web application that demonstrates **Mamdani-type fuzzy inference** for controlling fan speed based on ambient **temperature** and **humidity**. Every step of the inference pipeline from fuzzification to centroid defuzzification  is visualised in real time.
+An interactive web application that demonstrates and visualizes **Mamdani fuzzy inference** for regulating fan speed based on ambient **temperature** and **humidity**. Every step of the inference pipeline — from fuzzification to centroid defuzzification — is visualized in real time.
 
 </div>
 
 ---
 
-## 📸 Screenshots
+## 📸 Preview
 
 <div align="center">
 
 #### Dashboard & Input Controls
 ![Dashboard & Input Controls](screenshots/image.png)
 
-#### Result Summary
-![Result Summary](screenshots/image%20copy.png)
-
-#### Step 1 — Membership Functions
-![Membership Functions](screenshots/image%20copy%202.png)
-
-#### Step 2 — Fuzzification
-![Fuzzification](screenshots/image%20copy%203.png)
-
-#### Step 3 — Rule Evaluation
-![Rule Evaluation](screenshots/image%20copy%204.png)
-
-#### Step 4 — Implication
-![Implication](screenshots/image%20copy%205.png)
-
-#### Step 5 — Aggregation
-![Aggregation](screenshots/image%20copy%206.png)
-
-#### Step 6 — Defuzzification
-![Defuzzification](screenshots/image%20copy%207.png)
-
-#### Final Computed Output
-![Final Computed Output](screenshots/image%20copy%208.png)
+#### Final Output & Result Summary
+![Final Output & Result Summary](screenshots/image%20copy.png)
 
 </div>
 
@@ -59,6 +35,139 @@ An interactive web application that demonstrates **Mamdani-type fuzzy inference*
 | ✂️ **Implication & Aggregation** | Clipped consequent sets and pointwise-max aggregation shown graphically |
 | 🎯 **Centroid Defuzzification** | Final crisp output computed via centre-of-gravity method |
 | 🎨 **Custom Themed UI** | Dark-mode design with a cohesive color palette |
+
+---
+
+## 🧠 How It Works: Pipeline Walkthrough
+
+The application follows the classic **six-step fuzzy inference pipeline**, breaking down complex reasoning into intuitive visual steps:
+
+### Step 1 — Membership Functions
+Define triangular fuzzy sets for each input (*Temperature*, *Humidity*) and output (*Fan Speed*) variable across their respective universes of discourse.
+
+<div align="center">
+
+![Step 1 — Membership Functions](screenshots/image%20copy%202.png)
+
+</div>
+
+---
+
+### Step 2 — Fuzzification
+Project crisp scalar inputs onto the input membership functions to compute their respective degrees of membership ($\mu \in [0, 1]$).
+
+<div align="center">
+
+![Step 2 — Fuzzification](screenshots/image%20copy%203.png)
+
+</div>
+
+---
+
+### Step 3 — Rule Evaluation
+Evaluate all 9 linguistic rules using the fuzzy **AND** operator ($\min$) to determine each rule's firing strength ($\alpha$).
+
+<div align="center">
+
+![Step 3 — Rule Evaluation](screenshots/image%20copy%204.png)
+
+</div>
+
+---
+
+### Step 4 — Implication
+Clip each rule's output membership function at its computed firing strength $\alpha$ ($\min$ implication).
+
+<div align="center">
+
+![Step 4 — Implication](screenshots/image%20copy%205.png)
+
+</div>
+
+---
+
+### Step 5 — Aggregation
+Combine all clipped consequent fuzzy sets using the fuzzy **OR** operator (pointwise maximum) to form a single combined fuzzy set.
+
+<div align="center">
+
+![Step 5 — Aggregation](screenshots/image%20copy%206.png)
+
+</div>
+
+---
+
+### Step 6 — Defuzzification
+Extract a crisp, single numerical fan speed value from the aggregated fuzzy region using the **Centroid (Centre of Gravity)** method.
+
+<div align="center">
+
+![Step 6 — Defuzzification](screenshots/image%20copy%207.png)
+
+#### Computed Result
+![Final Computed Output](screenshots/image%20copy%208.png)
+
+</div>
+
+---
+
+## 📏 Fuzzy Rule Base
+
+The system uses **9 rules** mapping two inputs to one output:
+
+| # | Temperature | Humidity | → Fan Speed |
+|:-:|:-----------:|:--------:|:-----------:|
+| 1 | Cold        | Low      | **Slow**    |
+| 2 | Cold        | Medium   | **Slow**    |
+| 3 | Cold        | High     | **Medium**  |
+| 4 | Warm        | Low      | **Slow**    |
+| 5 | Warm        | Medium   | **Medium**  |
+| 6 | Warm        | High     | **Fast**    |
+| 7 | Hot         | Low      | **Medium**  |
+| 8 | Hot         | Medium   | **Fast**    |
+| 9 | Hot         | High     | **Fast**    |
+
+**Operator:** AND = $\min$ &nbsp;·&nbsp; OR = $\max$ &nbsp;·&nbsp; Implication = clip &nbsp;·&nbsp; Defuzzification = centroid
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Python 3.8+**
+- **pip** (Python package manager)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/darpanhh/fuzzy_logic.git
+   cd fuzzy_logic
+   ```
+
+2. **Create and activate a virtual environment**
+   ```bash
+   python -m venv venv
+
+   # Windows
+   .\venv\Scripts\activate
+
+   # macOS / Linux
+   source venv/bin/activate
+   ```
+
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Launch the app**
+   ```bash
+   streamlit run app.py
+   ```
+
+   The app will open automatically at `http://localhost:8501`.
 
 ---
 
@@ -107,79 +216,6 @@ An interactive web application that demonstrates **Mamdani-type fuzzy inference*
 ├── requirements.txt    # Python dependencies
 └── README.md
 ```
-
----
-
-## 📏 Fuzzy Rule Base
-
-The system uses **9 rules** mapping two inputs to one output:
-
-| # | Temperature | Humidity | → Fan Speed |
-|:-:|:-----------:|:--------:|:-----------:|
-| 1 | Cold        | Low      | **Slow**    |
-| 2 | Cold        | Medium   | **Slow**    |
-| 3 | Cold        | High     | **Medium**  |
-| 4 | Warm        | Low      | **Slow**    |
-| 5 | Warm        | Medium   | **Medium**  |
-| 6 | Warm        | High     | **Fast**    |
-| 7 | Hot         | Low      | **Medium**  |
-| 8 | Hot         | Medium   | **Fast**    |
-| 9 | Hot         | High     | **Fast**    |
-
-**Operator:** AND = min &nbsp;·&nbsp; OR = max &nbsp;·&nbsp; Implication = clip &nbsp;·&nbsp; Defuzzification = centroid
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- **Python 3.8+**
-- **pip** (Python package manager)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/darpanhh/fuzzy_logic.git
-   cd fuzzy_logic
-   ```
-
-2. **Create and activate a virtual environment**
-   ```bash
-   python -m venv venv
-
-   # Windows
-   .\venv\Scripts\activate
-
-   # macOS / Linux
-   source venv/bin/activate
-   ```
-
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Launch the app**
-   ```bash
-   streamlit run app.py
-   ```
-
-   The app will open automatically at `http://localhost:8501`.
-
----
-
-## 🧠 How It Works
-
-The application follows the **six-step Mamdani fuzzy inference pipeline**:
-
-1. **Membership Functions** — Define triangular fuzzy sets for each variable
-2. **Fuzzification** — Map crisp inputs to membership degrees
-3. **Rule Evaluation** — Compute firing strength of each rule using AND (min)
-4. **Implication** — Clip each consequent membership function at its rule strength
-5. **Aggregation** — Combine all clipped sets via pointwise maximum (OR)
-6. **Defuzzification** — Extract crisp output using centroid (centre of gravity)
 
 ---
 
