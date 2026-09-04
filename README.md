@@ -4,7 +4,7 @@
 
 ### An Interactive Mamdani Fuzzy Inference System with Step-by-Step Visualization
 
-An interactive web application that demonstrates and visualizes **Mamdani fuzzy inference** for regulating fan speed based on ambient **temperature** and **humidity**. Every step of the inference pipeline — from fuzzification to centroid defuzzification — is visualized in real time.
+An interactive web application that demonstrates and visualizes **Mamdani fuzzy inference** for regulating fan speed based on ambient **temperature** and **humidity**. Every step of the inference pipeline from fuzzification to centroid defuzzification is visualized in real time.
 
 </div>
 
