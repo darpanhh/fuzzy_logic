@@ -211,8 +211,6 @@ The system uses **9 rules** mapping two inputs to one output:
 ├── charts.py           # Matplotlib visualizations for each inference step
 ├── theme.py            # Design tokens, color palettes, and custom CSS
 ├── screenshots/        # App screenshots used in this README
-├── practice/
-│   └── main.py         # Standalone CLI implementation for experimentation
 ├── requirements.txt    # Python dependencies
 └── README.md
 ```
